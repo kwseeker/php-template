@@ -1,0 +1,19 @@
+{
+    "name": "kwseeker/php-template",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Kwseeker\\PhpTemplate\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Arvin Lee",
+            "email": "xiaohuileee@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4.27",
+        "laravel/laravel": "8.6.*"
+    }
+}
