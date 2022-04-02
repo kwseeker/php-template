@@ -231,7 +231,9 @@ composer create-project --prefer-dist laravel/laravel webdemo
 
 ![](https://laravel.gstatics.cn/storage/uploads/images/gallery/2020-09/scaled-1680-/image-6-1024x579.png)
 
-请求入口`index.php`；
+官网说请求入口是`index.php`，感觉这么说不太恰当，index.php是启动 http服务器的入口；
+
+请求的入口应该还是Router。
 
 基于Laravel开发主要就是针对ServiceProvider这部分。
 
@@ -239,9 +241,120 @@ composer create-project --prefer-dist laravel/laravel webdemo
 
 #### 基本组件
 
+##### 调试配置&日志
+
+为了更好的理解代码执行过程，需要调试或输出日志。
+
+**调试配置**
+
+PhpStorm并没有内置调试组件，需要安装 `Settings->PHP->Debug`; 这里选择 [XDebug](https://www.jetbrains.com/help/phpstorm/2021.3/configuring-xdebug.html)，按官方文档的配置即可。
+
+注意需要选择和PHP适配的XDebug版本
+
+将 `php -i`的结果粘贴到https://xdebug.org/wizard.php，获取安装建议，不建议通过apt命令行安装，经试验会下载旧版本，且会安装旧版本的php。
+
+如果使用旧版本就满足需要的话，可以执行下面的命令快速安装XDebug
+
+```shell
+# 这个命令比较简单但是装的不是最新版本这里默认装的2.6.0，而且可能会自动下载php,可能把之前的安装给覆盖了
+sudo apt-get install php-xdebug
+# 获取拓展包路径，官网没说怎么找拓展包路径 zend_extension, 可以用下面命令定位
+sudo updatedb
+locate xdebug.so
+# 修改php.ini, 在安装路径里如这里自动安装的php路径：/etc/php/7.2/cli/php.ini
+[xdebug]
+zend_extension="/usr/lib/php/20170718/xdebug.so"
+xdebug.remote_enable=1
+xdebug.remote_host=127.0.0.1
+xdebug.remote_port=9000
+```
+
+按照官方安装建议安装（比如针对我本地php(7.4.27)环境给出的建议）：
+
+1. Download [xdebug-3.1.3.tgz](https://xdebug.org/files/xdebug-3.1.3.tgz)
+
+2. Install the pre-requisites for compiling PHP extensions.
+   On your Ubuntu system, install them with: `apt-get install php-dev autoconf automake`
+
+3. Unpack the downloaded file with `tar -xvzf xdebug-3.1.3.tgz`
+
+4. Run: `cd xdebug-3.1.3`
+
+5. Run: `phpize` (See the [FAQ](https://xdebug.org/docs/faq#phpize) if you don't have `phpize`).
+
+   As part of its output it should show:
+
+   ```
+   Configuring for:
+   ...
+   Zend Module Api No:      20190902
+   Zend Extension Api No:   320190902
+   ```
+
+   If it does not, you are using the wrong `phpize`. Please follow [this FAQ entry](https://xdebug.org/docs/faq#custom-phpize) and skip the next step.
+
+6. Run: `./configure`
+
+7. Run: `make`
+
+8. Run: `cp modules/xdebug.so /opt/lampp/lib/php/extensions/no-debug-non-zts-20190902`
+
+9. Update `/opt/lampp/etc/php.ini` and add the line:
+   `zend_extension = xdebug`
+
+**日志输出**
+
+
+
 #### 其他组件
 
 ### Laravel/tinker
 
 ### fideloper/proxy
+
+
+
+## PHP Web项目架构
+
+即PHP Web项目组件怎么集成进去的？
+
+
+
+## 从某条业务线开始复刻
+
+比如登录，入口URI: login/verify， 由前面分析[路由](https://laravelacademy.org/post/21970)一般都放在项目根目录的routes目录下，
+
+```php
+Route::post('/login/verify', 'LoginController@verify');
+```
+
+然后看下代码语法的含义，看上去和C++调用静态成员方法一样，去官网[类与对象](https://www.php.net/manual/zh/language.oop5.php)查了下含义一样的。
+
+Route 是Laravel framework中定义的一个类，post() 方法用于响应Post请求。
+
+```php
+ @method static \Illuminate\Routing\Route post(string $uri, array|string|callable|null $action = null)
+```
+
+'LoginController@verify' 又是什么意思？
+
+Laravel 官方文档貌似没有讲这种使用方式，在一个非官方的教程[Laravel 路由入门](https://laravelacademy.org/post/9611)中找到了答案：
+
+将请求传递给了LoginCotroller的verify方法处理（这里@就只是传递了个字符串，并不是php的什么语法，具体对@怎么解析处理的还是得看Laravel源码），一方面可以简化路由文件，另一方面可以使用路由缓存，而传递闭包的方式是无法使用路由缓存的。
+
+
+
+
+
+> 涉及的相关语法：
+>
+> php源码文件格式；
+>
+> 字符串定义，单引号不会对斜线转义，双引号会对斜线转义；字符串拼接是通过'.'; 
+>
+> 类定义(包括成员变量、成员方法)，对象实例化，成员方法调用；
+>
+> php是脚本语言，没有main() 方法入口，代码逻辑从上到下执行；
+>
+> php是弱类型语言，方法不需要指定返回值类型，方法传参参数可能传多种类型数据；
 
